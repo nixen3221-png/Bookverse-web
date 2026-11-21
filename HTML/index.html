@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BookVerse · Monitoreo en tiempo real</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <!-- Encabezado y estado de red (RF-10) -->
+    <header>
+      <div class="title-group">
+        <h1>
+          <span class="logo-box" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+              <path d="M8 15V9m4 6v-4m4 4V7"></path>
+            </svg>
+          </span>
+          BookVerse · Monitoreo en tiempo real
+        </h1>
+        <p>Prototipo Etapa 3 (RF-10, RF-11, RF-12, RF-13) · Arquitectura 3 Capas + MVC</p>
+      </div>
+      <div class="status-bar">
+        <span id="connPill" class="pill online">● Conectado · en vivo</span>
+        <strong id="clock">11:54:36</strong>
+      </div>
+    </header>
+
+    <!-- Banner de excepciones de red o sensores (RF-10 / RF-11) -->
+    <div id="globalBanner" class="banner-error"></div>
+
+    <!-- Indicadores Clave (KPIs) -->
+    <section class="kpi-grid">
+      <article class="card">
+        <div class="kpi-label">Sensores en línea</div>
+        <div class="kpi-value" id="kpiOnline">6<small>/6</small></div>
+      </article>
+      <article class="card">
+        <div class="kpi-label">Alertas activas</div>
+        <div class="kpi-value" id="kpiAlerts">0</div>
+      </article>
+      <article class="card">
+        <div class="kpi-label">Personas en sucursales</div>
+        <div class="kpi-value" id="kpiPeople">35</div>
+      </article>
+      <article class="card">
+        <div class="kpi-label">Lecturas guardadas</div>
+        <div class="kpi-value" id="kpiStored">228</div>
+      </article>
+    </section>
+
+    <!-- Flujo de Arquitectura del Sistema -->
+    <section class="arch-strip" aria-label="Flujo de arquitectura IoT">
+      <div class="arch-step">
+        <div class="arch-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+        </div>
+        <strong>Sensores</strong>
+        <span>bodega y acceso</span>
+      </div>
+      <div class="arch-step">
+        <div class="arch-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+        </div>
+        <strong>ESP32</strong>
+        <span>envía el JSON</span>
+      </div>
+      <div class="arch-step">
+        <div class="arch-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        </div>
+        <strong>Internet</strong>
+        <span>HTTP / MQTT</span>
+      </div>
+      <div class="arch-step">
+        <div class="arch-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="8" rx="2"/><rect x="2" y="13" width="20" height="8" rx="2"/></svg>
+        </div>
+        <strong>Servidor</strong>
+        <span>monitor y alertas</span>
+      </div>
+      <div class="arch-step">
+        <div class="arch-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+        </div>
+        <strong>Base de datos</strong>
+        <span>MySQL / RF-11</span>
+      </div>
+      <div class="arch-step">
+        <div class="arch-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        </div>
+        <strong>Panel web</strong>
+        <span>tiempo real</span>
+      </div>
+    </section>
+
+    <!-- Barra de Controles, Simulaciones y Reportes -->
+    <section class="toolbar">
+      <div class="btn-group">
+        <button id="btnSimOfflineSensor" type="button">Simular: sensor T-02 sin datos</button>
+        <button id="btnSimNoNet" type="button">Simular: sin internet</button>
+        <button id="btnSimHot" type="button">Simular: bodega húmeda y caliente</button>
+        <button id="btnGenerarInforme" class="btn-primary" type="button">Generar Informe (RF-12)</button>
+        <button id="btnAbrirPruebas" type="button">Bitácora Pruebas (RF-13)</button>
+        <button id="btnBorrarLecturas" type="button">Borrar lecturas guardadas</button>
+      </div>
+      <button id="btnModoOscuro" type="button">Modo oscuro</button>
+    </section>
+
+    <!-- Sucursal Chillán -->
+    <h2 class="section-title">Sucursal Chillán</h2>
+    <section class="sensor-grid" id="gridChillan">
+      <article class="card">
+        <div class="sensor-header">
+          <div class="sensor-title-wrap">
+            <span class="sensor-icon icon-temp">🌡</span>
+            <div>
+              <div class="sensor-name">T-01 · Temperatura</div>
+              <div class="sensor-sub">Bodega · SensorTemperatura</div>
+            </div>
+          </div>
+          <span class="badge normal">Normal</span>
+        </div>
+        <div class="sensor-reading">22.9 <small>°C</small></div>
+        <svg class="sparkline" viewBox="0 0 260 40" preserveAspectRatio="none">
+          <polyline fill="none" stroke="#ea580c" stroke-width="2" points="0,22 45,20 90,23 135,19 180,21 225,18 260,20" />
+        </svg>
+        <div class="sensor-footer">
+          <span>Umbral: 28 °C</span>
+          <span>Última lectura: 11:54:36</span>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="sensor-header">
+          <div class="sensor-title-wrap">
+            <span class="sensor-icon icon-hum">💧</span>
+            <div>
+              <div class="sensor-name">H-01 · Humedad</div>
+              <div class="sensor-sub">Bodega · SensorHumedad</div>
+            </div>
+          </div>
+          <span class="badge normal">Normal</span>
+        </div>
+        <div class="sensor-reading">53 <small>%</small></div>
+        <svg class="sparkline" viewBox="0 0 260 40" preserveAspectRatio="none">
+          <polyline fill="none" stroke="#0284c7" stroke-width="2" points="0,24 45,22 90,22 135,20 180,21 225,19 260,20" />
+        </svg>
+        <div class="sensor-footer">
+          <span>Umbral: 65 %</span>
+          <span>Última lectura: 11:54:36</span>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="sensor-header">
+          <div class="sensor-title-wrap">
+            <span class="sensor-icon icon-people">👥</span>
+            <div>
+              <div class="sensor-name">P-01 · Conteo de personas</div>
+              <div class="sensor-sub">Acceso principal · ContadorPersonas</div>
+            </div>
+          </div>
+          <span class="badge normal">Normal</span>
+        </div>
+        <div class="sensor-reading">17 <small>personas</small></div>
+        <svg class="sparkline" viewBox="0 0 260 40" preserveAspectRatio="none">
+          <polyline fill="none" stroke="#6366f1" stroke-width="2" points="0,28 45,25 90,27 135,21 180,24 225,19 260,22" />
+        </svg>
+        <div class="sensor-footer">
+          <span>Umbral: 40 personas</span>
+          <span>Última lectura: 11:54:36</span>
+        </div>
+      </article>
+    </section>
+
+    <!-- Sucursal Concepción -->
+    <h2 class="section-title">Sucursal Concepción</h2>
+    <section class="sensor-grid" id="gridConcepcion">
+      <article class="card">
+        <div class="sensor-header">
+          <div class="sensor-title-wrap">
+            <span class="sensor-icon icon-temp">🌡</span>
+            <div>
+              <div class="sensor-name">T-02 · Temperatura</div>
+              <div class="sensor-sub">Bodega · SensorTemperatura</div>
+            </div>
+          </div>
+          <span class="badge normal">Normal</span>
+        </div>
+        <div class="sensor-reading">21.9 <small>°C</small></div>
+        <svg class="sparkline" viewBox="0 0 260 40" preserveAspectRatio="none">
+          <polyline fill="none" stroke="#ea580c" stroke-width="2" points="0,20 45,21 90,19 135,22 180,20 225,21 260,20" />
+        </svg>
+        <div class="sensor-footer">
+          <span>Umbral: 28 °C</span>
+          <span>Última lectura: 11:54:36</span>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="sensor-header">
+          <div class="sensor-title-wrap">
+            <span class="sensor-icon icon-hum">💧</span>
+            <div>
+              <div class="sensor-name">H-02 · Humedad</div>
+              <div class="sensor-sub">Bodega · SensorHumedad</div>
+            </div>
+          </div>
+          <span class="badge normal">Normal</span>
+        </div>
+        <div class="sensor-reading">50 <small>%</small></div>
+        <svg class="sparkline" viewBox="0 0 260 40" preserveAspectRatio="none">
+          <polyline fill="none" stroke="#0284c7" stroke-width="2" points="0,21 45,20 90,23 135,21 180,22 225,20 260,21" />
+        </svg>
+        <div class="sensor-footer">
+          <span>Umbral: 65 %</span>
+          <span>Última lectura: 11:54:36</span>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="sensor-header">
+          <div class="sensor-title-wrap">
+            <span class="sensor-icon icon-people">👥</span>
+            <div>
+              <div class="sensor-name">P-02 · Conteo de personas</div>
+              <div class="sensor-sub">Acceso principal · ContadorPersonas</div>
+            </div>
+          </div>
+          <span class="badge normal">Normal</span>
+        </div>
+        <div class="sensor-reading">18 <small>personas</small></div>
+        <svg class="sparkline" viewBox="0 0 260 40" preserveAspectRatio="none">
+          <polyline fill="none" stroke="#6366f1" stroke-width="2" points="0,25 45,22 90,24 135,20 180,23 225,21 260,20" />
+        </svg>
+        <div class="sensor-footer">
+          <span>Umbral: 40 personas</span>
+          <span>Última lectura: 11:54:36</span>
+        </div>
+      </article>
+    </section>
+
+    <!-- Paneles Inferiores: Alertas y Últimas Lecturas -->
+    <section class="bottom-grid">
+      <article class="card">
+        <div class="panel-header">
+          <h3>Alertas recientes</h3>
+          <span class="sensor-sub" id="colaReintento">Cola reintento RF-11: 0</span>
+        </div>
+        <div class="log-box" id="alertsBox">
+          <p class="empty-msg">Sin alertas, todo en orden.</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="panel-header">
+          <h3>Últimas lecturas guardadas</h3>
+          <span class="badge-pill-muted">localStorage · máximo 300</span>
+        </div>
+        <div class="log-box" id="readingsBox">
+          <div class="log-item">
+            <span><span class="time-muted">11:54:12</span> <span class="tag-code">P-02</span> <strong>18 personas</strong></span>
+            <span class="sensor-sub">Concepción</span>
+          </div>
+          <div class="log-item">
+            <span><span class="time-muted">11:54:12</span> <span class="tag-code">H-02</span> <strong>50 %</strong></span>
+            <span class="sensor-sub">Concepción</span>
+          </div>
+          <div class="log-item">
+            <span><span class="time-muted">11:54:12</span> <span class="tag-code">T-02</span> <strong>21.9 °C</strong></span>
+            <span class="sensor-sub">Concepción</span>
+          </div>
+          <div class="log-item">
+            <span><span class="time-muted">11:54:12</span> <span class="tag-code">P-01</span> <strong>17 personas</strong></span>
+            <span class="sensor-sub">Chillán</span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <footer class="note">
+      Cada 3 segundos llegan seis lecturas (una por sensor). Umbrales: temperatura fuera de 15–28 °C, humedad sobre 65 %, más de 40 personas por sucursal.
+    </footer>
+  </div>
+
+  <!-- Modal RF-12: Generación de Informes Operacionales -->
+  <div class="modal-backdrop" id="modalRF12">
+    <div class="modal">
+      <h2>Informe Operacional de Sensores (RF-12)</h2>
+      <p class="sensor-sub" id="rf12Meta"></p>
+      <div id="rf12PartialWarn" class="banner-error"></div>
+      <div id="rf12Content"></div>
+      <div class="modal-actions">
+        <button id="btnDescargarInforme" class="btn-primary" type="button">Descargar Informe (.txt)</button>
+        <button id="btnCerrarRF12" type="button">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal RF-13: Evaluación y Ajustes del Sistema -->
+  <div class="modal-backdrop" id="modalRF13">
+    <div class="modal">
+      <h2>Evaluación y Ajuste del Sistema (RF-13)</h2>
+      <p class="sensor-sub">Registro de observaciones tras pruebas de funcionamiento y mejoras aplicadas.</p>
+      <label for="rf13Obs"><strong>Observación / Desviación detectada:</strong></label>
+      <textarea id="rf13Obs" rows="2" placeholder="Ej: Al simular corte de red, los datos quedaron retenidos en cola..."></textarea>
+      <label for="rf13Adj" class="lbl-space"><strong>Ajuste o mejora aplicada:</strong></label>
+      <textarea id="rf13Adj" rows="2" placeholder="Ej: Se implementó reintento automático al restablecer conexión."></textarea>
+      <div class="modal-actions-left">
+        <button id="btnGuardarPrueba" class="btn-primary" type="button">Guardar Registro</button>
+        <button id="btnCerrarRF13" type="button">Cerrar</button>
+      </div>
+      <div class="log-box" id="rf13List"></div>
+    </div>
+  </div>
+
+  <!-- En el siguiente paso conectaremos aquí: <script type="module" src="js/app.js"></script> -->
+</body>
+</html>
