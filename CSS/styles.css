@@ -218,6 +218,12 @@ button:hover { border-color: var(--primary); }
 button.btn-primary { background: var(--primary); color: #ffffff; border-color: var(--primary); }
 button.btn-primary:hover { opacity: 0.92; }
 
+button.btn-active-sim {
+  background: var(--warn-bg);
+  color: var(--warn-text);
+  border-color: var(--warn-text);
+}
+
 .section-title {
   font-size: 0.74rem;
   text-transform: uppercase;
@@ -335,8 +341,48 @@ svg.sparkline { width: 100%; height: 38px; display: block; margin: 6px 0; }
 
 .modal h2 { margin-top: 0; font-size: 1.15rem; }
 .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
-.modal-actions-left { display: flex; gap: 8px; margin-top: 10px; }
+.modal-actions-left { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .lbl-space { display: block; margin-top: 10px; }
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 0.78rem;
+}
+
+.report-table th, .report-table td {
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  text-align: left;
+}
+
+.report-table th {
+  background: var(--tag-bg);
+}
+
+.rf13-thresholds {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: flex-end;
+  background: var(--tag-bg);
+  padding: 10px;
+  border-radius: 8px;
+  margin-top: 8px;
+  font-size: 0.76rem;
+}
+
+.rf13-thresholds input {
+  width: 68px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  display: block;
+  margin-top: 3px;
+}
 
 textarea {
   width: 100%;

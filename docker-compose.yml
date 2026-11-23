@@ -1,0 +1,16 @@
+services:
+  mysql-bookverse:
+    image: mysql:8.0
+    container_name: bookverse-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bookverse_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - ./Database/bookverse_iot.sql:/docker-entrypoint-initdb.d/bookverse_iot.sql
+      - bookverse_mysql_data:/var/lib/mysql
+
+volumes:
+  bookverse_mysql_data:

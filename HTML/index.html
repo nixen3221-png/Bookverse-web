@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>BookVerse · Monitoreo en tiempo real</title>
-  <link rel="stylesheet" href="/CSS/styles.css" />
+  <link rel="stylesheet" href="../CSS/styles.css" />
 </head>
 <body>
   <div class="container">
@@ -20,7 +20,7 @@
           </span>
           BookVerse · Monitoreo en tiempo real
         </h1>
-        <p>Sistema de Monitoreo Ambiental y Aforo · Base de Datos MySQL (RF-10, RF-11, RF-12, RF-13)</p>
+        <p>Sistema de Monitoreo Ambiental y Aforo · Base de Datos MySQL Docker (RF-10, RF-11, RF-12, RF-13)</p>
       </div>
       <div class="status-bar">
         <span id="connPill" class="pill offline">● Esperando conexión BD</span>
@@ -101,8 +101,12 @@
     <section class="toolbar">
       <div class="btn-group">
         <button id="btnSincronizarBD" class="btn-primary" type="button">Sincronizar con BD</button>
+        <button id="btnSimSensorOff" type="button">Simular sensor T-02 sin datos</button>
+        <button id="btnSimOffline" type="button">Simular sin internet</button>
+        <button id="btnSimCritico" type="button">Simular bodega húmeda y caliente</button>
         <button id="btnGenerarInforme" type="button">Generar Informe (RF-12)</button>
         <button id="btnAbrirPruebas" type="button">Bitácora Pruebas (RF-13)</button>
+        <button id="btnBorrarLecturas" type="button">Borrar lecturas guardadas</button>
       </div>
       <button id="btnModoOscuro" type="button" onclick="document.body.classList.toggle('dark')">Modo oscuro</button>
     </section>
@@ -142,7 +146,7 @@
       </article>
     </section>
 
-    <footer class="note">
+    <footer class="note" id="footerUmbrales">
       Umbrales operacionales: Temperatura 15–28 °C, Humedad máx. 65 %, Aforo máx. 40 personas por sucursal.
     </footer>
   </div>
@@ -166,16 +170,27 @@
     <div class="modal">
       <h2>Evaluación y Ajuste del Sistema (RF-13)</h2>
       <p class="sensor-sub">Registro de observaciones tras pruebas de funcionamiento y mejoras aplicadas.</p>
-      <label for="rf13Obs"><strong>Observación / Desviación detectada:</strong></label>
+
+      <div class="rf13-thresholds">
+        <label>Temp. Máx (°C): <input type="number" id="adjTempMax" value="28" step="0.5" /></label>
+        <label>Humedad Máx (%): <input type="number" id="adjHumMax" value="65" step="1" /></label>
+        <label>Aforo Máx: <input type="number" id="adjCapMax" value="40" step="1" /></label>
+        <button id="btnAplicarUmbrales" type="button">Aplicar Ajuste</button>
+      </div>
+
+      <label for="rf13Obs" class="lbl-space"><strong>Observación / Desviación detectada:</strong></label>
       <textarea id="rf13Obs" rows="2"></textarea>
       <label for="rf13Adj" class="lbl-space"><strong>Ajuste o mejora aplicada:</strong></label>
       <textarea id="rf13Adj" rows="2"></textarea>
       <div class="modal-actions-left">
         <button id="btnGuardarPrueba" class="btn-primary" type="button">Guardar Registro</button>
+        <button id="btnEjecutarAutoTest" type="button">Ejecutar Pruebas Automáticas</button>
         <button id="btnCerrarRF13" type="button" onclick="document.getElementById('modalRF13').style.display='none'">Cerrar</button>
       </div>
-      <div class="log-box" id="rf13List"></div>
+      <div class="log-box lbl-space" id="rf13List"></div>
     </div>
   </div>
+
+  <script src="../JS/app.js"></script>
 </body>
 </html>
